@@ -1,0 +1,18 @@
+services:
+  cronograma:
+    build: .
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: "file:/data/cronograma.db"
+      JWT_SECRET: "cambia-este-secreto-en-produccion"
+      ADMIN_NAME: "Administrador"
+      ADMIN_EMAIL: "admin@local"
+      ADMIN_PASSWORD: "admin123"
+    volumes:
+      - cronograma-data:/data
+    restart: unless-stopped
+
+volumes:
+  cronograma-data:

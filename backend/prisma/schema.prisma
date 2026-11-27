@@ -1,0 +1,160 @@
+// Esquema de datos de Cronograma Studio.
+// SQLite para desarrollo local sin instalar servidores. El modelo es relacional
+// y puede migrarse a PostgreSQL cambiando el provider y DATABASE_URL.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String            @id @default(cuid())
+  name         String
+  email        String            @unique
+  passwordHash String
+  role         String            @default("admin")
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  projects     Project[]         @relation("ProjectOwner")
+  shareLinks   ShareLink[]
+  snapshots    ProjectSnapshot[]
+
+  @@map("users")
+}
+
+model Project {
+  id             String            @id @default(cuid())
+  name           String
+  description    String?
+  code           String?
+  ownerId        String
+  owner          User              @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  status         String            @default("planning")
+  color          String            @default("#4F46E5")
+  startDate      String
+  endDate        String?
+  timezone       String            @default("America/Mexico_City")
+  schedulingMode String            @default("manual")
+  workingDays    String            @default("1,2,3,4,5")
+  holidays       String            @default("[]")
+  showToday      Boolean           @default(true)
+  referenceDate  String?
+  defaultScale   String            @default("day")
+  sourcePlantUml String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  archivedAt     DateTime?
+
+  phases        Phase[]
+  activities    Activity[]
+  dependencies  Dependency[]
+  shareLinks    ShareLink[]
+  snapshots     ProjectSnapshot[]
+
+  @@index([ownerId])
+  @@map("projects")
+}
+
+model Phase {
+  id        String     @id @default(cuid())
+  projectId String
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name      String
+  color     String?
+  sortOrder Int        @default(0)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  activities Activity[]
+
+  @@index([projectId])
+  @@map("phases")
+}
+
+model Activity {
+  id           String   @id @default(cuid())
+  projectId    String
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  phaseId      String?
+  phase        Phase?   @relation(fields: [phaseId], references: [id], onDelete: SetNull)
+  parentId     String?
+  parent       Activity?  @relation("ActivityHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children     Activity[] @relation("ActivityHierarchy")
+  name         String
+  description  String?
+  type         String     @default("task")
+  startDate    String
+  endDate      String
+  duration     Int        @default(1)
+  durationUnit String     @default("working_day")
+  progress     Int        @default(0)
+  status       String     @default("pending")
+  priority     String     @default("medium")
+  color        String?
+  assignee     String?
+  sortOrder    Int        @default(0)
+  notes        String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  outgoing Dependency[] @relation("PredecessorActivity")
+  incoming Dependency[] @relation("SuccessorActivity")
+
+  @@index([projectId])
+  @@index([phaseId])
+  @@map("activities")
+}
+
+model Dependency {
+  id            String   @id @default(cuid())
+  projectId     String
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  predecessorId String
+  successorId   String
+  predecessor   Activity @relation("PredecessorActivity", fields: [predecessorId], references: [id], onDelete: Cascade)
+  successor     Activity @relation("SuccessorActivity", fields: [successorId], references: [id], onDelete: Cascade)
+  type          String   @default("FS")
+  lag           Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  @@unique([predecessorId, successorId, type])
+  @@index([projectId])
+  @@map("dependencies")
+}
+
+model ShareLink {
+  id           String    @id @default(cuid())
+  projectId    String
+  project      Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tokenHash    String    @unique
+  tokenPrefix  String
+  label        String?
+  permission   String    @default("viewer")
+  expiresAt    DateTime?
+  passwordHash String?
+  isActive     Boolean   @default(true)
+  createdById  String
+  createdBy    User      @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt    DateTime  @default(now())
+  lastAccessedAt DateTime?
+
+  @@index([projectId])
+  @@map("share_links")
+}
+
+model ProjectSnapshot {
+  id          String   @id @default(cuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name        String
+  data        String
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@index([projectId])
+  @@map("project_snapshots")
+}

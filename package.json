@@ -1,0 +1,40 @@
+{
+  "name": "cronograma-studio",
+  "version": "0.1.0",
+  "private": true,
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "engines": {
+    "node": ">=24.22.3"
+  },
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "overrides": {
+    "exceljs": {
+      "uuid": "^11.1.1"
+    }
+  },
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,magenta \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:api": "npm --workspace backend run dev",
+    "dev:web": "npm --workspace frontend run dev",
+    "build": "npm --workspace backend run build && npm --workspace frontend run build",
+    "start": "npm --workspace backend run start",
+    "db:push": "npm --workspace backend run db:push",
+    "db:generate": "npm --workspace backend run db:generate",
+    "seed": "npm --workspace backend run seed",
+    "test": "npm --workspace backend run test",
+    "setup": "npm install && npm run db:push && npm run seed"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "allowScripts": {
+    "@prisma/client": true,
+    "@prisma/engines": true,
+    "core-js": true,
+    "esbuild": true,
+    "prisma": true
+  }
+}
