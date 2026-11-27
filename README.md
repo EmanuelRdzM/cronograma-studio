@@ -6,10 +6,6 @@ Aplicación web para gestionar proyectos y crear, editar y compartir cronogramas
 
 > Captura de ejemplo de la interfaz. Una instalación nueva inicia sin proyectos.
 
-## Por qué existe
-
-Este proyecto nació de una necesidad práctica: mantener cronogramas de proyecto sin editar código ni regenerar una imagen cada vez que cambiaba una fecha. Quería tener las actividades en un solo lugar, poder ajustar fechas en una vista visual y compartir un enlace que siempre mostrara la versión actual.
-
 ## Funcionalidades
 
 ### Proyectos
